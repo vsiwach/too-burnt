@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Reservation {
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+
+  name          String
+  email         String
+  phone         String
+  party         Int
+  date          String
+  time          String
+  seating       String
+
+  allergies     String   // JSON array
+  allergyNotes  String
+  spice         String
+  occasion      String
+
+  dishes        String   // JSON object { waffles: 2, oj: 1, ... }
+
+  inviteCode    String?  // code used to book (denormalized for auditing)
+
+  status        String   @default("confirmed") // confirmed | cancelled
+}
+
+model InviteCode {
+  id         String    @id @default(cuid())
+  code       String    @unique
+  note       String    @default("")
+  maxUses    Int       @default(1)
+  usedCount  Int       @default(0)
+  disabled   Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  expiresAt  DateTime?
+}

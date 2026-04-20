@@ -192,7 +192,7 @@ async function sendGuestEmail(resend: Resend, from: string, r: ReservationPayloa
     const result = await resend.emails.send({
       from,
       to: r.email,
-      subject: `You&#39;re booked · ${dateLabel} at ${r.time}`,
+      subject: `You’re booked · ${dateLabel} at ${r.time}`,
       text,
       html,
       replyTo: process.env.RESTAURANT_EMAIL ?? undefined,

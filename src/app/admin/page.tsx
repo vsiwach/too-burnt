@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { DISHES, type DishKey } from "@/lib/menu";
+import { AdminBar } from "@/components/admin-bar";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -37,23 +38,8 @@ function parseAllergies(s: string): string[] {
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: { token?: string; date?: string };
+  searchParams: { date?: string };
 }) {
-  const required = process.env.ADMIN_TOKEN;
-  if (required && searchParams.token !== required) {
-    return (
-      <main style={{ padding: 48, fontFamily: "var(--font-inter)" }}>
-        <h1 className="serif" style={{ fontSize: 42, fontWeight: 300 }}>
-          Not authorized
-        </h1>
-        <p style={{ fontSize: 15, color: "var(--ink-soft)" }}>
-          Append <code>?token=…</code> to the URL (set <code>ADMIN_TOKEN</code> in{" "}
-          <code>.env.local</code>).
-        </p>
-      </main>
-    );
-  }
-
   const targetDate = searchParams.date ?? nextSundayISO();
   const reservations: ReservationRow[] = await prisma.reservation.findMany({
     where: { date: targetDate, status: "confirmed" },
@@ -97,6 +83,8 @@ export default async function AdminPage({
   }
 
   return (
+    <>
+    <AdminBar current="dashboard" />
     <main
       style={{
         fontFamily: "var(--font-inter), system-ui, sans-serif",
@@ -177,7 +165,7 @@ export default async function AdminPage({
           {upcomingDates.map((d) => (
             <a
               key={d}
-              href={`?date=${d}${required ? `&token=${searchParams.token}` : ""}`}
+              href={`?date=${d}`}
               className="mono"
               style={{
                 padding: "2px 8px",
@@ -362,6 +350,7 @@ export default async function AdminPage({
         </div>
       )}
     </main>
+    </>
   );
 }
 

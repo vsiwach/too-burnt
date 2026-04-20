@@ -15,10 +15,8 @@ type Invite = {
 
 export default function InvitesClient({
   initialCodes,
-  token,
 }: {
   initialCodes: Invite[];
-  token: string;
 }) {
   const [codes, setCodes] = useState<Invite[]>(initialCodes);
   const [note, setNote] = useState("");
@@ -31,7 +29,7 @@ export default function InvitesClient({
     setBusy(true);
     setErr(null);
     try {
-      const res = await fetch(`/api/invites${token ? `?token=${token}` : ""}`, {
+      const res = await fetch(`/api/invites`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ note, maxUses }),
@@ -55,7 +53,7 @@ export default function InvitesClient({
   };
 
   const toggleDisabled = async (code: Invite) => {
-    const res = await fetch(`/api/invites${token ? `?token=${token}` : ""}`, {
+    const res = await fetch(`/api/invites`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id: code.id, disabled: !code.disabled }),

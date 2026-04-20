@@ -1,21 +1,10 @@
+// Admin-only endpoint — gated by middleware (src/middleware.ts) via the session cookie.
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { generateInviteCode } from "@/lib/invite";
 
-function requireAdmin(req: Request) {
-  const required = process.env.ADMIN_TOKEN;
-  if (!required) return true; // if no token set, allow (dev convenience)
-  const url = new URL(req.url);
-  const fromQuery = url.searchParams.get("token");
-  const fromHeader = req.headers.get("x-admin-token");
-  return fromQuery === required || fromHeader === required;
-}
-
-export async function GET(req: Request) {
-  if (!requireAdmin(req)) {
-    return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
-  }
+export async function GET() {
   const codes = await prisma.inviteCode.findMany({
     orderBy: { createdAt: "desc" },
   });
@@ -30,10 +19,6 @@ const createSchema = z.object({
 });
 
 export async function POST(req: Request) {
-  if (!requireAdmin(req)) {
-    return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
-  }
-
   const body = await req.json().catch(() => ({}));
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) {
@@ -44,7 +29,6 @@ export async function POST(req: Request) {
   }
 
   let code = parsed.data.code ?? generateInviteCode();
-  // If user-supplied code collides with an existing one, append a suffix.
   for (let i = 0; i < 5; i++) {
     const exists = await prisma.inviteCode.findUnique({ where: { code } });
     if (!exists) break;
@@ -68,9 +52,6 @@ const patchSchema = z.object({
 });
 
 export async function PATCH(req: Request) {
-  if (!requireAdmin(req)) {
-    return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
-  }
   const body = await req.json().catch(() => ({}));
   const parsed = patchSchema.safeParse(body);
   if (!parsed.success) {
